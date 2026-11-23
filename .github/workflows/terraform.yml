@@ -1,62 +1,29 @@
-
-name: Terraform CI/CD
-
+name: Terraform
+ 
 on:
   push:
-    branches:
-      - main
-
+    branches: [main]
+  workflow_dispatch:
+ 
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ap-south-1
+ 
 jobs:
   terraform:
-    name: Terraform Deployment
     runs-on: ubuntu-latest
-
-    # Connect GitHub environment secrets
-    environment: aws-credentials
-
-    permissions:
-      contents: read
-
     steps:
-      # 1. Checkout repository
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 2. Check repository files
-      - name: Check repository structure
-        run: |
-          pwd
-          ls -la
-          find . -name "*.tf"
-
-      # 3. Configure AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
-
-      # 4. Verify AWS identity
-      - name: Verify AWS Identity
-        run: aws sts get-caller-identity
-
-      # 5. Setup Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      # 6. Terraform Init
+      - uses: actions/checkout@v4
+ 
+      - uses: hashicorp/setup-terraform@v3
+ 
       - name: Terraform Init
         run: terraform init
-
-      # 7. Terraform Format
-      - name: Terraform Format
-        run: terraform fmt -check -recursive
-
-      # 8. Terraform Validate
-      - name: Terraform Validate
-        run: terraform validate
-
-      # 9. Terraform Plan
+ 
       - name: Terraform Plan
         run: terraform plan
+ 
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+ 
